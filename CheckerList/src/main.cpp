@@ -1,4 +1,5 @@
 #include <WiFi.h>
+#include "AiEsp32RotaryEncoder.h"
 #include <TFT_eSPI.h>
 #include <SPI.h>
 // Replace with your network credentials
@@ -6,15 +7,38 @@ const char* ssid = "ESP32-Access-Point";
 const char* password = "123456789";
 // Set web server port number to 80
 WiFiServer server(80);
-
+AiEsp32RotaryEncoder Enc1 = AiEsp32RotaryEncoder(15, 4, 2, -1, 1);
+AiEsp32RotaryEncoder Enc2 = AiEsp32RotaryEncoder(13, 14, 12, -1, 1);
 TFT_eSPI tft = TFT_eSPI(320,480);   
+
+void IRAM_ATTR readEnc1ISR()
+{
+	Enc1.readEncoder_ISR();
+}
+void IRAM_ATTR readEnc2ISR()
+{
+	Enc2.readEncoder_ISR();
+}
+
 void setup() {
 	Serial.begin(115200);
+	
 	tft.init();
 	tft.setRotation(3);
-  tft.setCursor(0, 0, 2);  tft.fillScreen(TFT_BLACK);
-  tft.setTextColor(TFT_WHITE,TFT_BLACK);  tft.setTextSize(1);
-  tft.println("Hello World!");
+	tft.setCursor(0, 0, 2);  tft.fillScreen(TFT_BLACK);
+	tft.setTextColor(TFT_WHITE,TFT_BLACK);  tft.setTextSize(1);
+	tft.println("Hello World!");
+	
+	Enc1.begin();
+	Enc1.setup(readEnc1ISR);
+	Enc2.begin();
+	Enc2.setup(readEnc2ISR);
+	while(1){
+		Serial.print("ENC1:");
+		Serial.print(Enc1.readEncoder());
+		Serial.print("ENC2:");
+		Serial.println(Enc2.readEncoder());
+	}
 	// Connect to Wi-Fi network with SSID and password
 	Serial.print("Setting AP (Access Point)…");
 	// Remove the password parameter, if you want the AP (Access Point) to be open
