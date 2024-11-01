@@ -1,14 +1,20 @@
 #include <WiFi.h>
-
+#include <TFT_eSPI.h>
+#include <SPI.h>
 // Replace with your network credentials
 const char* ssid = "ESP32-Access-Point";
 const char* password = "123456789";
 // Set web server port number to 80
 WiFiServer server(80);
 
+TFT_eSPI tft = TFT_eSPI(320,480);   
 void setup() {
 	Serial.begin(115200);
-
+	tft.init();
+	tft.setRotation(3);
+  tft.setCursor(0, 0, 2);  tft.fillScreen(TFT_BLACK);
+  tft.setTextColor(TFT_WHITE,TFT_BLACK);  tft.setTextSize(1);
+  tft.println("Hello World!");
 	// Connect to Wi-Fi network with SSID and password
 	Serial.print("Setting AP (Access Point)…");
 	// Remove the password parameter, if you want the AP (Access Point) to be open
