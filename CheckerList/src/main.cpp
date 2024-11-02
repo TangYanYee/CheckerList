@@ -5,7 +5,16 @@
 #include "my_home_pw.h"
 // Replace with your network credentials
 AsyncWebServer server(80);	// REPLACE WITH YOUR NETWORK CREDENTIALS
+#include <SPI.h>
+#include <TFT_eSPI.h>
 
+#include "AiEsp32RotaryEncoder.h"
+AiEsp32RotaryEncoder Enc1 = AiEsp32RotaryEncoder(15, 4, 2, -1, 2);
+AiEsp32RotaryEncoder Enc2 = AiEsp32RotaryEncoder(13, 14, 12, -1, 2);
+TFT_eSPI tft = TFT_eSPI(320, 480);
+
+void IRAM_ATTR readEnc1ISR() { Enc1.readEncoder_ISR(); }
+void IRAM_ATTR readEnc2ISR() { Enc2.readEncoder_ISR(); }
 const char* PARAM_INPUT_1 = "input1";
 const char* PARAM_INPUT_2 = "input2";
 const char* PARAM_INPUT_3 = "input3";  // HTML web page to handle 3 input fields (input1, input2, input3)
@@ -23,6 +32,25 @@ const char index_html[] PROGMEM = R"rawliteral(
 void notFound(AsyncWebServerRequest* request) { request->send(404, "text/plain", "Not found"); }
 void setup() {
 	Serial.begin(115200);
+
+	tft.init();
+	tft.setRotation(3);
+	tft.setCursor(0, 0, 2);
+	tft.fillScreen(TFT_BLACK);
+	tft.setTextColor(TFT_WHITE, TFT_BLACK);
+	tft.setTextSize(1);
+	tft.println("Hello World!");
+
+	Enc1.begin();
+	Enc1.setup(readEnc1ISR);
+	Enc2.begin();
+	Enc2.setup(readEnc2ISR);
+	while (1) {
+		Serial.print("ENC1:");
+		Serial.print(Enc1.readEncoder());
+		Serial.print("ENC2:");
+		Serial.println(Enc2.readEncoder());
+	}
 	WiFi.mode(WIFI_STA);
 	WiFi.begin(ssid, password);
 	if (WiFi.waitForConnectResult() != WL_CONNECTED) {
